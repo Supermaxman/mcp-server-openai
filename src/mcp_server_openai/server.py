@@ -1,3 +1,4 @@
+import asyncio
 import os
 from urllib.parse import urlencode
 from fastmcp import FastMCP
@@ -25,24 +26,22 @@ async def get_costs(
         Optional[list[Literal["project_id", "line_item"]]],
         "The fields to group by (optional). Group the costs by the specified fields. Support fields include project_id, line_item and any combination of them.",
     ] = None,
-    limit: Annotated[
-        int, "The maximum number of results to return (default to 7 days)."
-    ] = 7,
     project_ids: Annotated[
         Optional[list[str]], "The project IDs to filter by (optional)."
     ] = None,
 ) -> list[dict]:
     """Fetches the costs for the current month."""
+
     base_url = "https://api.openai.com/v1/organization/costs"
     params = {
         "start_time": int(start_time.timestamp()),
+        "limit": 180,
     }
     if end_time:
         params["end_time"] = int(end_time.timestamp())
+
     if group_by:
         params["group_by"] = group_by
-    if limit:
-        params["limit"] = limit
     if project_ids:
         params["project_ids"] = project_ids
     url = f"{base_url}?{urlencode(params)}"
@@ -66,6 +65,8 @@ async def get_costs(
             if next_page and has_more:
                 params["page"] = next_page
                 url = f"{base_url}?{urlencode(params)}"
+                # sleep to avoid rate limiting
+                await asyncio.sleep(1.0)
     return results
 
 
