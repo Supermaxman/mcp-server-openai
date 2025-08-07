@@ -35,10 +35,10 @@ async def get_costs(
     """Fetches the costs for the current month."""
     base_url = "https://api.openai.com/v1/organization/costs"
     params = {
-        "start_time": start_time.timestamp(),
+        "start_time": int(start_time.timestamp()),
     }
     if end_time:
-        params["end_time"] = end_time.timestamp()
+        params["end_time"] = int(end_time.timestamp())
     if group_by:
         params["group_by"] = group_by
     if limit:
