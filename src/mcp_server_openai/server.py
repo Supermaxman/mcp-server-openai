@@ -74,6 +74,48 @@ async def get_costs(
     return results
 
 
+@mcp.tool(description="Fetches OpenAI projects for the current organization.")
+async def get_projects(
+    include_archived: Annotated[
+        bool, "Whether to include archived projects. Defaults to False."
+    ] = False,
+) -> list[dict]:
+    """Fetches the projects for the current organization."""
+
+    base_url = "https://api.openai.com/v1/organization/projects"
+    params: list[tuple[str, str]] = [
+        ("include_archived", include_archived),
+        ("limit", 180),
+    ]
+    base_params = params.copy()
+    url = f"{base_url}?{urlencode(base_params)}"
+    results: list[dict] = []
+    async with httpx.AsyncClient(
+        timeout=60,
+        headers={"Authorization": f"Bearer {OPENAI_ADMIN_API_KEY}"},
+    ) as client:
+        while url:
+            response = await client.get(url)
+            response.raise_for_status()
+            data = response.json()
+            items = data["data"]
+            for item in items:
+                item["created_at"] = datetime.fromtimestamp(item["created_at"])
+                if "archived_at" in item and item["archived_at"]:
+                    item["archived_at"] = datetime.fromtimestamp(item["archived_at"])
+                results.append(item)
+            last_id = data.get("last_id")
+            has_more = data.get("has_more")
+            url = None
+            if last_id and has_more:
+                params = base_params.copy()
+                params.append(("after", last_id))
+                url = f"{base_url}?{urlencode(params)}"
+                # sleep to avoid rate limiting
+                await asyncio.sleep(1.0)
+    return results
+
+
 def main() -> None:
     """Run the OpenAI MCP server."""
     mcp.run(transport="stdio")
