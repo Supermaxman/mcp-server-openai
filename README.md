@@ -2,6 +2,10 @@
 
 A Model Context Protocol server that provides tools to manage OpenAI API keys & spending.
 
+<a href="https://glama.ai/mcp/servers/@Supermaxman/mcp-server-openai">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@Supermaxman/mcp-server-openai/badge" alt="OpenAI Server MCP server" />
+</a>
+
 > [!CAUTION]
 > This server can access the OpenAI API and may represent a security risk. Exercise caution when using this MCP server to ensure this does not expose any sensitive data.
 
